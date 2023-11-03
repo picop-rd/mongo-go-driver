@@ -271,7 +271,7 @@ func logServerSelectionFailed(
 
 // Connect initializes a Topology and starts the monitoring process. This function
 // must be called to properly monitor the topology.
-func (t *Topology) Connect() error {
+func (t *Topology) Connect(ctx context.Context) error {
 	if !atomic.CompareAndSwapInt64(&t.state, topologyDisconnected, topologyConnecting) {
 		return ErrTopologyConnected
 	}
@@ -309,7 +309,7 @@ func (t *Topology) Connect() error {
 		t.publishTopologyDescriptionChangedEvent(description.Topology{}, t.fsm.Topology)
 
 		addr := address.Address(t.cfg.SeedList[0]).Canonicalize()
-		if err := t.addServer(addr); err != nil {
+		if err := t.addServer(ctx, addr); err != nil {
 			t.serversLock.Unlock()
 			return err
 		}
@@ -342,7 +342,7 @@ func (t *Topology) Connect() error {
 		t.publishTopologyDescriptionChangedEvent(description.Topology{}, t.fsm.Topology)
 		for _, a := range t.cfg.SeedList {
 			addr := address.Address(a).Canonicalize()
-			err = t.addServer(addr)
+			err = t.addServer(ctx, addr)
 			if err != nil {
 				t.serversLock.Unlock()
 				return err
@@ -370,7 +370,7 @@ func (t *Topology) Connect() error {
 			// but should not be able to when using SRV
 			return fmt.Errorf("URI with srv must not include a port number")
 		}
-		go t.pollSRVRecords(uri.Host)
+		go t.pollSRVRecords(ctx, uri.Host)
 		t.pollingwg.Add(1)
 	}
 
@@ -758,7 +758,7 @@ func (t *Topology) selectServerFromDescription(desc description.Topology,
 	return suitable, nil
 }
 
-func (t *Topology) pollSRVRecords(hosts string) {
+func (t *Topology) pollSRVRecords(ctx context.Context, hosts string) {
 	defer t.pollingwg.Done()
 
 	serverConfig := newServerConfig(t.cfg.ServerOpts...)
@@ -803,7 +803,7 @@ func (t *Topology) pollSRVRecords(hosts string) {
 			t.pollHeartbeatTime.Store(false)
 		}
 
-		cont := t.processSRVResults(parsedHosts)
+		cont := t.processSRVResults(ctx, parsedHosts)
 		if !cont {
 			break
 		}
@@ -812,7 +812,7 @@ func (t *Topology) pollSRVRecords(hosts string) {
 	doneOnce = true
 }
 
-func (t *Topology) processSRVResults(parsedHosts []string) bool {
+func (t *Topology) processSRVResults(ctx context.Context, parsedHosts []string) bool {
 	t.serversLock.Lock()
 	defer t.serversLock.Unlock()
 
@@ -856,7 +856,7 @@ func (t *Topology) processSRVResults(parsedHosts []string) bool {
 			break
 		}
 		addr := address.Address(a).Canonicalize()
-		_ = t.addServer(addr)
+		_ = t.addServer(ctx, addr)
 		t.fsm.addServer(addr)
 	}
 
@@ -929,7 +929,7 @@ func (t *Topology) apply(ctx context.Context, desc description.Server) descripti
 	}
 
 	for _, added := range diff.Added {
-		_ = t.addServer(added.Addr)
+		_ = t.addServer(ctx, added.Addr)
 	}
 
 	t.desc.Store(current)
@@ -951,12 +951,12 @@ func (t *Topology) apply(ctx context.Context, desc description.Server) descripti
 	return desc
 }
 
-func (t *Topology) addServer(addr address.Address) error {
+func (t *Topology) addServer(ctx context.Context, addr address.Address) error {
 	if _, ok := t.servers[addr]; ok {
 		return nil
 	}
 
-	svr, err := ConnectServer(addr, t.updateCallback, t.id, t.cfg.ServerOpts...)
+	svr, err := ConnectServer(ctx, addr, t.updateCallback, t.id, t.cfg.ServerOpts...)
 	if err != nil {
 		return err
 	}

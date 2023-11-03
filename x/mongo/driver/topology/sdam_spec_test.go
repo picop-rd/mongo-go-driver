@@ -240,7 +240,7 @@ func setUpTopology(t *testing.T, uri string) *Topology {
 	topo, err := New(cfg)
 	assert.Nil(t, err, "topology.New error: %v", err)
 
-	err = topo.Connect()
+	err = topo.Connect(context.Background())
 	assert.Nil(t, err, "topology.Connect error: %v", err)
 
 	return topo

@@ -206,7 +206,7 @@ func runCMAPTest(t *testing.T, testFileName string) {
 		}
 	}))
 
-	s := NewServer("mongodb://fake", primitive.NewObjectID(), sOpts...)
+	s := NewServer(context.Background(), "mongodb://fake", primitive.NewObjectID(), sOpts...)
 	s.state = serverConnected
 	require.NoError(t, err, "error connecting connection pool")
 	defer s.pool.close(context.Background())

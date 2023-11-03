@@ -149,7 +149,7 @@ func testPollingSRVRecordsSpec(t *testing.T, uri string) {
 			mockRes := newMockResolver(tt.recordsToAdd, tt.recordsToRemove, tt.lookupFail, tt.lookupTimeout)
 			topo.dnsResolver = &dns.Resolver{mockRes.LookupSRV, mockRes.LookupTXT}
 			topo.rescanSRVInterval = time.Millisecond * 5
-			err = topo.Connect()
+			err = topo.Connect(context.Background())
 			require.NoError(t, err, "Could not Connect to the topology: %v", err)
 
 			// wait for description to update
@@ -178,7 +178,7 @@ func TestPollSRVRecords(t *testing.T) {
 		mockRes := newMockResolver(nil, nil, false, false)
 		topo.dnsResolver = &dns.Resolver{mockRes.LookupSRV, mockRes.LookupTXT}
 		topo.rescanSRVInterval = time.Millisecond * 5
-		err = topo.Connect()
+		err = topo.Connect(context.Background())
 		require.NoError(t, err, "Could not Connect to the topology: %v", err)
 		topo.serversLock.Lock()
 		topo.fsm.Kind = description.Single
@@ -220,7 +220,7 @@ func TestPollSRVRecords(t *testing.T) {
 		mockRes := newMockResolver([]*net.SRV{{"blah.bleh", 27019, 0, 0}, {"localhost.test.build.10gen.cc.", 27020, 0, 0}}, nil, false, false)
 		topo.dnsResolver = &dns.Resolver{mockRes.LookupSRV, mockRes.LookupTXT}
 		topo.rescanSRVInterval = time.Millisecond * 5
-		err = topo.Connect()
+		err = topo.Connect(context.Background())
 		require.NoError(t, err, "Could not Connect to the topology: %v", err)
 
 		// wait for description to update
@@ -248,7 +248,7 @@ func TestPollSRVRecords(t *testing.T) {
 		mockRes.fail = 1
 		topo.dnsResolver = &dns.Resolver{mockRes.LookupSRV, mockRes.LookupTXT}
 		topo.rescanSRVInterval = time.Millisecond * 5
-		err = topo.Connect()
+		err = topo.Connect(context.Background())
 		require.NoError(t, err, "Could not Connect to the topology: %v", err)
 
 		// wait for description to update
@@ -295,7 +295,7 @@ func TestPollingSRVRecordsLoadBalanced(t *testing.T) {
 		topo := createLBTopology(t, "mongodb+srv://test3.test.build.10gen.cc")
 		topo.dnsResolver = dnsResolver
 		topo.rescanSRVInterval = time.Millisecond * 5
-		err := topo.Connect()
+		err := topo.Connect(context.Background())
 		assert.Nil(t, err, "Connect error: %v", err)
 		defer func() {
 			_ = topo.Disconnect(context.Background())
@@ -327,7 +327,7 @@ func TestPollSRVRecordsMaxHosts(t *testing.T) {
 		mockRes := newMockResolver(recordsToAdd, recordsToRemove, false, false)
 		topo.dnsResolver = &dns.Resolver{mockRes.LookupSRV, mockRes.LookupTXT}
 		topo.rescanSRVInterval = time.Millisecond * 5
-		err = topo.Connect()
+		err = topo.Connect(context.Background())
 		assert.Nil(t, err, "Connect error: %v", err)
 
 		// Wait for description to update.
@@ -399,7 +399,7 @@ func TestPollSRVRecordsServiceName(t *testing.T) {
 		mockRes := newMockResolver(recordsToAdd, recordsToRemove, false, false)
 		topo.dnsResolver = &dns.Resolver{mockRes.LookupSRV, mockRes.LookupTXT}
 		topo.rescanSRVInterval = time.Millisecond * 5
-		err = topo.Connect()
+		err = topo.Connect(context.Background())
 		assert.Nil(t, err, "Connect error: %v", err)
 
 		// Wait for description to update.

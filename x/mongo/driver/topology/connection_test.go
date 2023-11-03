@@ -774,7 +774,7 @@ func TestConnection(t *testing.T) {
 				t.Helper()
 
 				addr := bootstrapConnections(t, numConns, func(nc net.Conn) {})
-				pool := newPool(poolConfig{
+				pool := newPool(context.Background(), poolConfig{
 					Address: address.Address(addr.String()),
 				})
 				err := pool.ready()

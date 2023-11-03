@@ -287,7 +287,7 @@ func TestServerSelection(t *testing.T) {
 		topo, err := New(nil)
 		noerr(t, err)
 		atomic.StoreInt64(&topo.state, topologyConnected)
-		srvr, err := ConnectServer(address.Address("one"), topo.updateCallback, topo.id)
+		srvr, err := ConnectServer(context.Background(), address.Address("one"), topo.updateCallback, topo.id)
 		noerr(t, err)
 		topo.servers[address.Address("one")] = srvr
 		desc := topo.desc.Load().(description.Topology)
@@ -320,7 +320,7 @@ func TestServerSelection(t *testing.T) {
 
 		// manually add the servers to the topology
 		for _, srv := range desc.Servers {
-			s, err := ConnectServer(srv.Addr, topo.updateCallback, topo.id)
+			s, err := ConnectServer(context.Background(), srv.Addr, topo.updateCallback, topo.id)
 			noerr(t, err)
 			topo.servers[srv.Addr] = s
 		}
@@ -381,7 +381,7 @@ func TestServerSelection(t *testing.T) {
 		}
 		topo.desc.Store(desc)
 		for _, srv := range desc.Servers {
-			s, err := ConnectServer(srv.Addr, topo.updateCallback, topo.id)
+			s, err := ConnectServer(context.Background(), srv.Addr, topo.updateCallback, topo.id)
 			noerr(t, err)
 			topo.servers[srv.Addr] = s
 		}
@@ -638,7 +638,7 @@ func TestMinPoolSize(t *testing.T) {
 	if err != nil {
 		t.Errorf("topology.New shouldn't error. got: %v", err)
 	}
-	err = topo.Connect()
+	err = topo.Connect(context.Background())
 	if err != nil {
 		t.Errorf("topology.Connect shouldn't error. got: %v", err)
 	}
@@ -761,7 +761,7 @@ func TestTopologyConstructionLogging(t *testing.T) {
 				topo, err := New(cfg)
 				require.Nil(t, err, "topology.New error: %v", err)
 
-				err = topo.Connect()
+				err = topo.Connect(context.Background())
 				assert.Nil(t, err, "Connect error: %v", err)
 
 				assert.ElementsMatch(t, tc.msgs, sink.msgs, "expected messages to be %v, got %v", tc.msgs, sink.msgs)
@@ -825,7 +825,7 @@ func TestTopologyConstructionLogging(t *testing.T) {
 				topo, err := New(cfg)
 				require.Nil(t, err, "topology.New error: %v", err)
 
-				err = topo.Connect()
+				err = topo.Connect(context.Background())
 				assert.Nil(t, err, "Connect error: %v", err)
 
 				assert.ElementsMatch(t, tc.msgs, sink.msgs, "expected messages to be %v, got %v", tc.msgs, sink.msgs)
@@ -859,7 +859,7 @@ func TestTopologyConstructionLogging(t *testing.T) {
 				topo, err := New(cfg)
 				require.Nil(t, err, "topology.New error: %v", err)
 
-				err = topo.Connect()
+				err = topo.Connect(context.Background())
 				assert.Nil(t, err, "Connect error: %v", err)
 
 				assert.ElementsMatch(t, tc.msgs, sink.msgs, "expected messages to be %v, got %v", tc.msgs, sink.msgs)
@@ -918,7 +918,7 @@ func TestTopologyConstructionLogging(t *testing.T) {
 				topo, err := New(cfg)
 				require.Nil(t, err, "topology.New error: %v", err)
 
-				err = topo.Connect()
+				err = topo.Connect(context.Background())
 				assert.Nil(t, err, "Connect error: %v", err)
 
 				assert.ElementsMatch(t, tc.msgs, sink.msgs, "expected messages to be %v, got %v", tc.msgs, sink.msgs)
@@ -988,6 +988,7 @@ func runInWindowTest(t *testing.T, directory string, filename string) {
 	descriptions := make([]description.Server, 0, len(test.TopologyDescription.Servers))
 	for _, testDesc := range test.TopologyDescription.Servers {
 		server := NewServer(
+			context.Background(),
 			address.Address(testDesc.Address),
 			primitive.NilObjectID,
 			withMonitoringDisabled(func(bool) bool { return true }))

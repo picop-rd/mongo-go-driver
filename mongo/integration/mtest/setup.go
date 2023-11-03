@@ -107,7 +107,7 @@ func Setup(setupOpts ...*SetupOptions) error {
 	if err != nil {
 		return fmt.Errorf("error creating topology: %v", err)
 	}
-	if err = testContext.topo.Connect(); err != nil {
+	if err = testContext.topo.Connect(context.Background()); err != nil {
 		return fmt.Errorf("error connecting topology: %v", err)
 	}
 

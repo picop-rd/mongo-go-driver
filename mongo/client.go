@@ -244,7 +244,7 @@ func NewClient(opts ...*options.ClientOptions) (*Client, error) {
 // Deprecated: Use [mongo.Connect] instead.
 func (c *Client) Connect(ctx context.Context) error {
 	if connector, ok := c.deployment.(driver.Connector); ok {
-		err := connector.Connect()
+		err := connector.Connect(ctx)
 		if err != nil {
 			return replaceErrors(err)
 		}

@@ -22,7 +22,7 @@ func TestInsert(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't connect topology: %v", err)
 	}
-	_ = topo.Connect()
+	_ = topo.Connect(context.Background())
 
 	doc := bsoncore.BuildDocument(nil, bsoncore.AppendDoubleElement(nil, "pi", 3.14159))
 

@@ -268,7 +268,7 @@ func TestCMAPProse(t *testing.T) {
 func createTestPool(t *testing.T, cfg poolConfig, opts ...ConnectionOption) *pool {
 	t.Helper()
 
-	pool := newPool(cfg, opts...)
+	pool := newPool(context.Background(), cfg, opts...)
 	err := pool.ready()
 	assert.Nil(t, err, "connect error: %v", err)
 	return pool

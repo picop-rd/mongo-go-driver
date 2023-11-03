@@ -25,7 +25,7 @@ type Deployment interface {
 
 // Connector represents a type that can connect to a server.
 type Connector interface {
-	Connect() error
+	Connect(context.Context) error
 }
 
 // Disconnector represents a type that can disconnect from a server.

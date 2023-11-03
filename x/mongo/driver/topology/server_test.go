@@ -163,6 +163,7 @@ func TestServerHeartbeatTimeout(t *testing.T) {
 			errors := &errorQueue{errors: tc.ioErrors}
 			tpm := eventtest.NewTestPoolMonitor()
 			server := NewServer(
+				context.Background(),
 				address.Address("localhost:27017"),
 				primitive.NewObjectID(),
 				WithConnectionPoolMonitor(func(*event.PoolMonitor) *event.PoolMonitor {
@@ -296,6 +297,7 @@ func TestServerConnectionTimeout(t *testing.T) {
 
 			tpm := eventtest.NewTestPoolMonitor()
 			server := NewServer(
+				context.Background(),
 				address.Address(l.Addr().String()),
 				primitive.NewObjectID(),
 				WithConnectionPoolMonitor(func(*event.PoolMonitor) *event.PoolMonitor {
@@ -377,6 +379,7 @@ func TestServer(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var returnConnectionError bool
 			s := NewServer(
+				context.Background(),
 				address.Address("localhost"),
 				primitive.NewObjectID(),
 				WithConnectionOptions(func(connOpts ...ConnectionOption) []ConnectionOption {
@@ -560,7 +563,7 @@ func TestServer(t *testing.T) {
 					WithMaxConnecting(func(uint64) uint64 { return 1 }),
 				}
 
-				server, err := ConnectServer(address.Address("localhost:27017"), nil, primitive.NewObjectID(), serverOpts...)
+				server, err := ConnectServer(context.Background(), address.Address("localhost:27017"), nil, primitive.NewObjectID(), serverOpts...)
 				assert.Nil(t, err, "ConnectServer error: %v", err)
 				defer func() {
 					_ = server.Disconnect(context.Background())
@@ -592,7 +595,9 @@ func TestServer(t *testing.T) {
 			_ = nc.Close()
 		})
 		d := newdialer(&net.Dialer{})
-		s := NewServer(address.Address(addr.String()),
+		s := NewServer(
+			context.Background(),
+			address.Address(addr.String()),
 			primitive.NewObjectID(),
 			WithConnectionOptions(func(option ...ConnectionOption) []ConnectionOption {
 				return []ConnectionOption{WithDialer(func(_ Dialer) Dialer { return d })}
@@ -641,7 +646,7 @@ func TestServer(t *testing.T) {
 			updated.Store(true)
 			return desc
 		}
-		s, err := ConnectServer(address.Address("localhost"), updateCallback, primitive.NewObjectID())
+		s, err := ConnectServer(context.Background(), address.Address("localhost"), updateCallback, primitive.NewObjectID())
 		require.NoError(t, err)
 		s.updateDescription(description.Server{Addr: s.address})
 		require.True(t, updated.Load().(bool))
@@ -656,7 +661,7 @@ func TestServer(t *testing.T) {
 			return append(connOpts, dialerOpt)
 		})
 
-		s := NewServer(address.Address("localhost:27017"), primitive.NewObjectID(), serverOpt)
+		s := NewServer(context.Background(), address.Address("localhost:27017"), primitive.NewObjectID(), serverOpt)
 
 		// do a heartbeat with a nil connection so a new one will be dialed
 		_, err := s.check()
@@ -720,7 +725,7 @@ func TestServer(t *testing.T) {
 			WithServerMonitor(func(*event.ServerMonitor) *event.ServerMonitor { return sdam }),
 		}
 
-		s := NewServer(address.Address("localhost:27017"), primitive.NewObjectID(), serverOpts...)
+		s := NewServer(context.Background(), address.Address("localhost:27017"), primitive.NewObjectID(), serverOpts...)
 
 		// set up heartbeat connection, which doesn't send events
 		_, err := s.check()
@@ -778,7 +783,9 @@ func TestServer(t *testing.T) {
 	t.Run("WithServerAppName", func(t *testing.T) {
 		name := "test"
 
-		s := NewServer(address.Address("localhost"),
+		s := NewServer(
+			context.Background(),
+			address.Address("localhost"),
 			primitive.NewObjectID(),
 			WithServerAppName(func(string) string { return name }))
 		require.Equal(t, name, s.cfg.appname, "expected appname to be: %v, got: %v", name, s.cfg.appname)
@@ -787,6 +794,7 @@ func TestServer(t *testing.T) {
 		socketTimeout := 40 * time.Second
 
 		s := NewServer(
+			context.Background(),
 			address.Address("localhost"),
 			primitive.NewObjectID(),
 			WithConnectionOptions(func(connOpts ...ConnectionOption) []ConnectionOption {
@@ -807,6 +815,7 @@ func TestServer(t *testing.T) {
 		// The context created for heartbeats should be cancelled when it is no longer needed to avoid leaks.
 
 		server, err := ConnectServer(
+			context.Background(),
 			address.Address("invalid"),
 			nil,
 			primitive.NewObjectID(),
@@ -1185,7 +1194,7 @@ func TestServer_ProcessError(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			server := NewServer(address.Address(""), primitive.NewObjectID())
+			server := NewServer(context.Background(), address.Address(""), primitive.NewObjectID())
 			server.state = serverConnected
 			err := server.pool.ready()
 			require.Nil(t, err, "pool.ready() error: %v", err)

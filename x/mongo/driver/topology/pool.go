@@ -188,7 +188,7 @@ func connectionPerished(conn *connection) (reason, bool) {
 }
 
 // newPool creates a new pool. It will use the provided options when creating connections.
-func newPool(config poolConfig, connOpts ...ConnectionOption) *pool {
+func newPool(ctx context.Context, config poolConfig, connOpts ...ConnectionOption) *pool {
 	if config.MaxIdleTime != time.Duration(0) {
 		connOpts = append(connOpts, WithIdleTimeout(func(_ time.Duration) time.Duration { return config.MaxIdleTime }))
 	}
@@ -233,8 +233,7 @@ func newPool(config poolConfig, connOpts ...ConnectionOption) *pool {
 	// Create a Context with cancellation that's used to signal the createConnections() and
 	// maintain() background goroutines to stop. Also create a "backgroundDone" WaitGroup that is
 	// used to wait for the background goroutines to return.
-	var ctx context.Context
-	ctx, pool.cancelBackgroundCtx = context.WithCancel(context.Background())
+	ctx, pool.cancelBackgroundCtx = context.WithCancel(ctx)
 
 	for i := 0; i < int(pool.maxConnecting); i++ {
 		pool.backgroundDone.Add(1)

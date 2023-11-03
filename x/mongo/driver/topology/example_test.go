@@ -7,6 +7,7 @@
 package topology_test
 
 import (
+	"context"
 	"log"
 
 	"go.mongodb.org/mongo-driver/x/mongo/driver/topology"
@@ -17,7 +18,7 @@ func Example_clusterMonitoring() {
 	if err != nil {
 		log.Fatalf("could not create topology: %v", err)
 	}
-	err = topo.Connect()
+	err = topo.Connect(context.Background())
 	if err != nil {
 		log.Fatalf("could not create topology: %v", err)
 	}

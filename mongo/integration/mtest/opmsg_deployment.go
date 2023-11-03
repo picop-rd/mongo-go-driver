@@ -152,7 +152,7 @@ func (md *mockDeployment) RTTMonitor() driver.RTTMonitor {
 }
 
 // Connect is a no-op method which implements the driver.Connector interface.
-func (md *mockDeployment) Connect() error {
+func (md *mockDeployment) Connect(_ context.Context) error {
 	return nil
 }
 

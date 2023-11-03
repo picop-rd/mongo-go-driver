@@ -7,6 +7,7 @@
 package topology
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"testing"
@@ -73,7 +74,7 @@ func TestLoadBalancedFromConnString(t *testing.T) {
 			assert.Nil(t, err, "topology.New error: %v", err)
 			assert.Equal(t, tc.loadBalanced, topo.cfg.LoadBalanced, "expected loadBalanced %v, got %v", tc.loadBalanced, topo.cfg.LoadBalanced)
 
-			srvr := NewServer("", topo.id, topo.cfg.ServerOpts...)
+			srvr := NewServer(context.Background(), "", topo.id, topo.cfg.ServerOpts...)
 			assert.Equal(t, tc.loadBalanced, srvr.cfg.loadBalanced, "expected loadBalanced %v, got %v", tc.loadBalanced, srvr.cfg.loadBalanced)
 
 			conn := newConnection("", srvr.cfg.connectionOpts...)

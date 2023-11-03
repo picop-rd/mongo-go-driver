@@ -99,7 +99,7 @@ func MonitoredTopology(t *testing.T, dbName string, monitor *event.CommandMonito
 	if err != nil {
 		t.Fatal(err)
 	} else {
-		_ = monitoredTopology.Connect()
+		_ = monitoredTopology.Connect(context.Background())
 
 		err = operation.NewCommand(bsoncore.BuildDocument(nil, bsoncore.AppendInt32Element(nil, "dropDatabase", 1))).
 			Database(dbName).ServerSelector(description.WriteSelector()).Deployment(monitoredTopology).Execute(context.Background())
@@ -123,7 +123,7 @@ func Topology(t *testing.T) *topology.Topology {
 		if err != nil {
 			liveTopologyErr = err
 		} else {
-			_ = liveTopology.Connect()
+			_ = liveTopology.Connect(context.Background())
 
 			err = operation.NewCommand(bsoncore.BuildDocument(nil, bsoncore.AppendInt32Element(nil, "dropDatabase", 1))).
 				Database(DBName(t)).ServerSelector(description.WriteSelector()).Deployment(liveTopology).Execute(context.Background())
@@ -152,7 +152,7 @@ func TopologyWithCredential(t *testing.T, credential options.Credential) *topolo
 	if err != nil {
 		t.Fatal("Could not construct topology")
 	}
-	err = topology.Connect()
+	err = topology.Connect(context.Background())
 	if err != nil {
 		t.Fatal("Could not start topology connection")
 	}

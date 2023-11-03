@@ -134,12 +134,13 @@ type updateTopologyCallback func(description.Server) description.Server
 // ConnectServer creates a new Server and then initializes it using the
 // Connect method.
 func ConnectServer(
+	ctx context.Context,
 	addr address.Address,
 	updateCallback updateTopologyCallback,
 	topologyID primitive.ObjectID,
 	opts ...ServerOption,
 ) (*Server, error) {
-	srvr := NewServer(addr, topologyID, opts...)
+	srvr := NewServer(ctx, addr, topologyID, opts...)
 	err := srvr.Connect(updateCallback)
 	if err != nil {
 		return nil, err
@@ -149,9 +150,9 @@ func ConnectServer(
 
 // NewServer creates a new server. The mongodb server at the address will be monitored
 // on an internal monitoring goroutine.
-func NewServer(addr address.Address, topologyID primitive.ObjectID, opts ...ServerOption) *Server {
+func NewServer(ctx context.Context, addr address.Address, topologyID primitive.ObjectID, opts ...ServerOption) *Server {
 	cfg := newServerConfig(opts...)
-	globalCtx, globalCtxCancel := context.WithCancel(context.Background())
+	globalCtx, globalCtxCancel := context.WithCancel(ctx)
 	s := &Server{
 		state: serverDisconnected,
 
@@ -191,7 +192,7 @@ func NewServer(addr address.Address, topologyID primitive.ObjectID, opts ...Serv
 	}
 
 	connectionOpts := copyConnectionOpts(cfg.connectionOpts)
-	s.pool = newPool(pc, connectionOpts...)
+	s.pool = newPool(globalCtx, pc, connectionOpts...)
 	s.publishServerOpeningEvent(s.address)
 
 	return s
@@ -230,6 +231,7 @@ func logServerMessage(srv *Server, msg string, keysAndValues ...interface{}) {
 		}, keysAndValues...)...)
 }
 
+// Connect
 // Connect initializes the Server by starting background monitoring goroutines.
 // This method must be called before a Server can be used.
 func (s *Server) Connect(updateCallback updateTopologyCallback) error {

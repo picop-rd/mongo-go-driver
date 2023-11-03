@@ -26,7 +26,7 @@ func TestPool(t *testing.T) {
 		t.Run("minPoolSize should not exceed maxPoolSize", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPool(poolConfig{MinPoolSize: 100, MaxPoolSize: 10})
+			p := newPool(context.Background(), poolConfig{MinPoolSize: 100, MaxPoolSize: 10})
 			assert.Equalf(t, uint64(10), p.minSize, "expected minSize of a pool not to be greater than maxSize")
 
 			p.close(context.Background())
@@ -34,7 +34,7 @@ func TestPool(t *testing.T) {
 		t.Run("minPoolSize may exceed maxPoolSize of 0", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPool(poolConfig{MinPoolSize: 10, MaxPoolSize: 0})
+			p := newPool(context.Background(), poolConfig{MinPoolSize: 10, MaxPoolSize: 0})
 			assert.Equalf(t, uint64(10), p.minSize, "expected minSize of a pool to be greater than maxSize of 0")
 
 			p.close(context.Background())
@@ -42,7 +42,7 @@ func TestPool(t *testing.T) {
 		t.Run("should be paused", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPool(poolConfig{})
+			p := newPool(context.Background(), poolConfig{})
 			assert.Equalf(t, poolPaused, p.getState(), "expected new pool to be paused")
 
 			p.close(context.Background())
@@ -61,7 +61,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p1 := newPool(poolConfig{
+			p1 := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			})
 			err := p1.ready()
@@ -70,7 +70,7 @@ func TestPool(t *testing.T) {
 			c, err := p1.checkOut(context.Background())
 			noerr(t, err)
 
-			p2 := newPool(poolConfig{})
+			p2 := newPool(context.Background(), poolConfig{})
 			err = p2.ready()
 			noerr(t, err)
 
@@ -87,7 +87,7 @@ func TestPool(t *testing.T) {
 		t.Run("calling close multiple times does not panic", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPool(poolConfig{})
+			p := newPool(context.Background(), poolConfig{})
 			err := p.ready()
 			noerr(t, err)
 
@@ -106,7 +106,7 @@ func TestPool(t *testing.T) {
 			})
 
 			d := newdialer(&net.Dialer{})
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			}, WithDialer(func(Dialer) Dialer { return d }))
 			err := p.ready()
@@ -142,7 +142,7 @@ func TestPool(t *testing.T) {
 			})
 
 			d := newdialer(&net.Dialer{})
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			}, WithDialer(func(Dialer) Dialer { return d }))
 			err := p.ready()
@@ -177,7 +177,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			})
 			err := p.ready()
@@ -223,7 +223,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			})
 			err := p.ready()
@@ -278,7 +278,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			})
 			err := p.ready()
@@ -307,7 +307,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			})
 			err := p.ready()
@@ -345,7 +345,7 @@ func TestPool(t *testing.T) {
 		t.Run("calling ready multiple times does not return an error", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPool(poolConfig{})
+			p := newPool(context.Background(), poolConfig{})
 			for i := 0; i < 5; i++ {
 				err := p.ready()
 				noerr(t, err)
@@ -363,7 +363,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			})
 			err := p.ready()
@@ -401,7 +401,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			})
 			err := p.ready()
@@ -451,7 +451,7 @@ func TestPool(t *testing.T) {
 			t.Parallel()
 
 			dialErr := errors.New("create new connection error")
-			p := newPool(poolConfig{}, WithDialer(func(Dialer) Dialer {
+			p := newPool(context.Background(), poolConfig{}, WithDialer(func(Dialer) Dialer {
 				return DialerFunc(func(context.Context, string, string) (net.Conn, error) {
 					return nil, dialErr
 				})
@@ -486,7 +486,7 @@ func TestPool(t *testing.T) {
 			})
 
 			d := newdialer(&net.Dialer{})
-			p := newPool(
+			p := newPool(context.Background(),
 				poolConfig{
 					Address:     address.Address(addr.String()),
 					MaxIdleTime: time.Millisecond,
@@ -532,7 +532,7 @@ func TestPool(t *testing.T) {
 			})
 
 			d := newdialer(&net.Dialer{})
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			}, WithDialer(func(Dialer) Dialer { return d }))
 			err := p.ready()
@@ -559,7 +559,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			})
 			err := p.ready()
@@ -577,7 +577,7 @@ func TestPool(t *testing.T) {
 		t.Run("handshaker i/o fails", func(t *testing.T) {
 			t.Parallel()
 
-			p := newPool(
+			p := newPool(context.Background(),
 				poolConfig{},
 				WithHandshaker(func(Handshaker) Handshaker {
 					return operation.NewHello()
@@ -626,7 +626,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address:     address.Address(addr.String()),
 				MaxPoolSize: 1,
 			})
@@ -666,7 +666,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address:     address.Address(addr.String()),
 				MaxPoolSize: 1,
 			})
@@ -720,7 +720,7 @@ func TestPool(t *testing.T) {
 			})
 
 			d := newdialer(&net.Dialer{})
-			p := newPool(
+			p := newPool(context.Background(),
 				poolConfig{
 					Address:     address.Address(addr.String()),
 					MaxPoolSize: 2,
@@ -788,7 +788,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address:     address.Address(addr.String()),
 				MaxPoolSize: 1,
 			})
@@ -828,7 +828,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			})
 			err := p.ready()
@@ -861,7 +861,7 @@ func TestPool(t *testing.T) {
 			})
 
 			d := newdialer(&net.Dialer{})
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			}, WithDialer(func(Dialer) Dialer { return d }))
 			err := p.ready()
@@ -891,7 +891,7 @@ func TestPool(t *testing.T) {
 				_ = nc.Close()
 			})
 
-			p1 := newPool(poolConfig{
+			p1 := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 			})
 			err := p1.ready()
@@ -900,7 +900,7 @@ func TestPool(t *testing.T) {
 			c, err := p1.checkOut(context.Background())
 			noerr(t, err)
 
-			p2 := newPool(poolConfig{})
+			p2 := newPool(context.Background(), poolConfig{})
 			err = p2.ready()
 			noerr(t, err)
 
@@ -921,7 +921,7 @@ func TestPool(t *testing.T) {
 			})
 
 			d := newdialer(&net.Dialer{})
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address:     address.Address(addr.String()),
 				MaxIdleTime: 100 * time.Millisecond,
 			}, WithDialer(func(Dialer) Dialer { return d }))
@@ -954,7 +954,7 @@ func TestPool(t *testing.T) {
 			})
 
 			d := newdialer(&net.Dialer{})
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address:     address.Address(addr.String()),
 				MinPoolSize: 3,
 				MaxIdleTime: 10 * time.Millisecond,
@@ -994,7 +994,7 @@ func TestPool(t *testing.T) {
 			})
 
 			d := newdialer(&net.Dialer{})
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address:     address.Address(addr.String()),
 				MinPoolSize: 3,
 			}, WithDialer(func(Dialer) Dialer { return d }))
@@ -1018,7 +1018,7 @@ func TestPool(t *testing.T) {
 			})
 
 			d := newdialer(&net.Dialer{})
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address:     address.Address(addr.String()),
 				MinPoolSize: 20,
 				MaxPoolSize: 2,
@@ -1043,7 +1043,7 @@ func TestPool(t *testing.T) {
 			})
 
 			d := newdialer(&net.Dialer{})
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address: address.Address(addr.String()),
 				// Set the pool's maintain interval to 10ms so that it allows the test to run quickly.
 				MaintainInterval: 10 * time.Millisecond,
@@ -1092,7 +1092,7 @@ func TestPool(t *testing.T) {
 			})
 
 			d := newdialer(&net.Dialer{})
-			p := newPool(poolConfig{
+			p := newPool(context.Background(), poolConfig{
 				Address:     address.Address(addr.String()),
 				MinPoolSize: 3,
 				// Set the pool's maintain interval to 10ms so that it allows the test to run quickly.
